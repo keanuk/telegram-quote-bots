@@ -1,6 +1,8 @@
 #!/usr/bin/python
 
 import sys
+import json
+import pickle
 import re
 
 quotes = {}
@@ -47,7 +49,12 @@ def extract_quotes(media_name):
 		i += 1
 	file.close()
 
-	for key, value in quotes.items():
-		print(key + ": " + str(value));
+	with open('../models/' + media_name + '.json', 'w', encoding='utf8') as f:
+		json.dump(quotes, f, ensure_ascii=False)
+
+	with open('../models/' + media_name + '.pickle', 'wb') as f:
+		pickle.dump(quotes, f)
+	
+	print("Success")
 
 extract_quotes(sys.argv[1])
