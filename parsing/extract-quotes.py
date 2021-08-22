@@ -42,7 +42,7 @@ def create_context_mappings(quotes, triggers):
 	for quote in quotes:
 		for word in quote.split():
 			filtered = re.sub(r'/[^0-9A-Za-z\'-]/', '', re.sub('[`‘’’]', '\'', word.lower()).strip(string.punctuation).strip('\'\"“”'))
-			if (filtered not in common) and (filtered not in triggers):
+			if filtered not in common:
 				if filtered in context_mappings:
 					context_mappings[filtered].append(quote)
 				else:

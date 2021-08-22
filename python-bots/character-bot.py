@@ -29,9 +29,10 @@ def reply(update, context):
 	global triggers
 	if (any(word in (update.message.text).lower() for word in triggers)):
 		reply = random.choice(quotes)
-		for word in (update.message.text).lower().split():
+		words = (update.message.text).lower().split()
+		random.shuffle(words)
+		for word in words:
 			filtered = re.sub(r'/[^0-9A-Za-z\'-]/', '', re.sub('[`‘’’]', '\'', word.lower()).strip(string.punctuation).strip('\'\"“”'))
-			print(filtered)
 			if filtered in context_mapping.keys():
 				reply = random.choice(context_mapping[filtered])				
 		context.bot.send_message(chat_id = update.effective_chat.id, text = reply)
