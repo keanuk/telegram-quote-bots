@@ -14,9 +14,7 @@ def start(update, context):
 	context.bot.send_message(chat_id=update.effective_chat.id, text="What?")
 
 def reply(update, context):
-	if (any(word in (update.message.text).lower() for word in {"thomas", "tom", "tommy", "lobster", "winslow",
-	 "secret", "wake", "what", "wot", "wat", "steak", "aye", "lad", "drink", "drunk", "ye", "hark", "triton",
-	 "neptune", "gull", "toast", "steady", "luck", "damn", "cook"})):
+	if (any(word in (update.message.text).lower() for word in {"gollum", "smeagol", "precious", "hobbit", "what"})):
 		reply = random.choice(quotes[character])
 		context.bot.send_message(chat_id = update.effective_chat.id, text = reply)
 
@@ -32,7 +30,7 @@ def main(media, name, bot):
 	dispatcher = updater.dispatcher
 	logging.basicConfig(format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s', level = logging.INFO)
 
-	quotes = json.load(open("../models/" + media + ".json", "r"))
+	quotes = json.load(open("../models/all-characters/" + media + ".json", "r"))
 	character = name.upper();
 
 	print("Starting bot\nCharacter name: " + character + "\n" + "Quotes:")

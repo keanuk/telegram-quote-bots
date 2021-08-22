@@ -5,11 +5,41 @@ import os
 import json
 import csv
 import re
+import string
+from collections import Counter
 
 screenplay_path = "../media-scripts/"
-character_path = "../models/characters"
-all_characters_path = "../models/all-characters"
-triggers_path = "../models/triggers"
+character_path = "../models/characters/"
+all_characters_path = "../models/all-characters/"
+triggers_path = "../models/triggers/"
+common_path = "../supplimentary/common.csv"
+
+def load_common():
+	global common_path
+	common = []
+	with open(common_path, 'r') as f:
+		reader = csv.reader(f)
+		common = list(reader)[0]
+	common_filtered = []
+	for word in common:
+		common_filtered.append(re.sub(r'/[^0-9A-Za-z\'-]/', '', word.lower()))
+	return common_filtered
+
+def get_commonly_used_words(quotes):
+	common = load_common()
+	words = []
+	for quote in quotes:
+		for word in quote.split():
+			filtered = re.sub(r'/[^0-9A-Za-z\'-]/', '', word.lower().strip(string.punctuation).strip('\'`‘’'))
+			if filtered not in common and len(filtered) > 0:
+				words.append(filtered)
+	return Counter(words).most_common(20)
+
+def write_triggers(character_name, quotes):
+	global triggers_path
+	with open(triggers_path + character_name + '.csv', 'w') as f:
+		writer = csv.writer(f)
+		writer.writerow(get_commonly_used_words(quotes[character_name.upper()]));
 
 def write_all_to_file(media_name, quotes):
 	global all_characters_path
@@ -18,8 +48,9 @@ def write_all_to_file(media_name, quotes):
 
 def write_to_file(character_name, quotes):
 	global character_path
-	with open(character_path + character_name + '.csv', 'w', encoding = 'utf8') as f:
-		csv.writer.writerow(quotes[character_name]);
+	with open(character_path + character_name + '.csv', 'w') as f:
+		writer = csv.writer(f)
+		writer.writerow(quotes[character_name.upper()]);
 
 def extract_quotes(media_name, character_name):
 	global screenplay_path
@@ -69,8 +100,9 @@ def extract_quotes(media_name, character_name):
 				file.close()
 
 	write_all_to_file(media_name, quotes)
-	write_to_file(media_name, quotes)
+	write_to_file(character_name, quotes)
+	write_triggers(character_name, quotes)
 
 	print("Success")
 
-extract_quotes(sys.argv[1])
+extract_quotes(sys.argv[1], sys.argv[2])
