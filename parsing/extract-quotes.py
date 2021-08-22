@@ -12,6 +12,7 @@ screenplay_path = "../media-scripts/"
 character_path = "../models/characters/"
 all_characters_path = "../models/all-characters/"
 triggers_path = "../models/triggers/"
+context_mappings_path = "../models/context-mappings/"
 common_path = "../supplimentary/common.csv"
 
 def load_common():
@@ -30,25 +31,47 @@ def get_commonly_used_words(quotes):
 	words = []
 	for quote in quotes:
 		for word in quote.split():
-			filtered = re.sub(r'/[^0-9A-Za-z\'-]/', '', word.lower().strip(string.punctuation).strip('\'`‘’'))
+			filtered = re.sub(r'/[^0-9A-Za-z\'-]/', '', re.sub('[`‘’’]', '\'', word.lower()).strip(string.punctuation).strip('\'\"“”'))
 			if filtered not in common and len(filtered) > 0:
 				words.append(filtered)
-	return Counter(words).most_common(20)
+	return [word for word, word_count in Counter(words).most_common(20)]
+
+def create_context_mappings(quotes, triggers):
+	common = load_common()
+	context_mappings = {}
+	for quote in quotes:
+		for word in quote.split():
+			filtered = re.sub(r'/[^0-9A-Za-z\'-]/', '', re.sub('[`‘’’]', '\'', word.lower()).strip(string.punctuation).strip('\'\"“”'))
+			if (filtered not in common) and (filtered not in triggers):
+				if filtered in context_mappings:
+					context_mappings[filtered].append(quote)
+				else:
+					context_mappings[filtered] = [quote]
+	return context_mappings
+
+def write_context_mappings(character_name, quotes, triggers):
+	global context_mappings_path
+	context_mappings = create_context_mappings(quotes[character_name.upper()], triggers)
+	with open(context_mappings_path + character_name.lower() + '.json', 'w', encoding='utf8') as f:
+		json.dump(context_mappings, f, ensure_ascii=False)
 
 def write_triggers(character_name, quotes):
 	global triggers_path
-	with open(triggers_path + character_name + '.csv', 'w') as f:
+	triggers = get_commonly_used_words(quotes[character_name.upper()])
+	triggers.append(character_name.lower())
+	with open(triggers_path + character_name.lower() + '.csv', 'w') as f:
 		writer = csv.writer(f)
-		writer.writerow(get_commonly_used_words(quotes[character_name.upper()]));
+		writer.writerow(triggers);
+	return triggers
 
 def write_all_to_file(media_name, quotes):
 	global all_characters_path
-	with open(all_characters_path + media_name + '.json', 'w', encoding = 'utf8') as f:
+	with open(all_characters_path + media_name.lower() + '.json', 'w', encoding = 'utf8') as f:
 		json.dump(quotes, f, ensure_ascii = False)
 
 def write_to_file(character_name, quotes):
 	global character_path
-	with open(character_path + character_name + '.csv', 'w') as f:
+	with open(character_path + character_name.lower() + '.csv', 'w') as f:
 		writer = csv.writer(f)
 		writer.writerow(quotes[character_name.upper()]);
 
@@ -101,7 +124,8 @@ def extract_quotes(media_name, character_name):
 
 	write_all_to_file(media_name, quotes)
 	write_to_file(character_name, quotes)
-	write_triggers(character_name, quotes)
+	triggers = write_triggers(character_name, quotes)
+	write_context_mappings(character_name, quotes, triggers)
 
 	print("Success")
 
